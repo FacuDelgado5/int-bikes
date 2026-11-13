@@ -16,6 +16,9 @@ const inpHours = document.getElementById(
 const inpPrice = document.getElementById(
   "inp-price",
 ) as HTMLInputElement | null;
+const inpLateHours = document.getElementById(
+  "inp-late-hours",
+) as HTMLInputElement | null;
 const btnAdd = document.getElementById("btn-add") as HTMLButtonElement | null;
 const errorContainer = document.getElementById(
   "error-container",
@@ -47,6 +50,9 @@ const inpTotalRentals = document.getElementById(
 const inpTotalIncome = document.getElementById(
   "inp-total-income",
 ) as HTMLInputElement | null;
+const inpTotalLateFees = document.getElementById(
+  "inp-total-late-fees",
+) as HTMLInputElement | null;
 
 function clearInputs(): void {
   if (inpCustomer && inpCode && inpHours && inpPrice) {
@@ -54,6 +60,9 @@ function clearInputs(): void {
     inpCode.value = "";
     inpHours.value = "";
     inpPrice.value = "";
+    if (inpLateHours) {
+      inpLateHours.value = "";
+    }
   }
 }
 
@@ -82,7 +91,10 @@ function createDeleteButton(rental: Rental): HTMLButtonElement {
   button.textContent = "Eliminar";
   button.setAttribute("aria-label", `Eliminar ${rental.bikeCode}`);
   button.addEventListener("click", () => {
-    // TODO: eliminar este alquiler y actualizar los paneles
+    rentalList.remove(rental.bikeCode);
+    updateList();
+    updateListByType();
+    updateTotals();
   });
   return button;
 }
@@ -97,8 +109,10 @@ function createCard(rental: Rental): HTMLDivElement {
   const title = document.createElement("h5");
   title.className = "card-title";
   title.textContent = rental.bikeCode;
+  const badge = document.createElement("span");
+  badge.className = "badge bg-primary";
+  badge.textContent = BIKE_TYPE_LABELS[rental.bikeType];
   const lines = [
-    `Tipo: ${BIKE_TYPE_LABELS[rental.bikeType]}`,
     `Cliente: ${rental.customer}`,
     `Horas: ${rental.hours}`,
     `Costo: $${rental.cost()}`,
@@ -106,7 +120,7 @@ function createCard(rental: Rental): HTMLDivElement {
   if (rental.lateHours > 0) {
     lines.push(`Atraso: ${rental.lateHours} h`);
   }
-  body.append(title, ...lines.map(createText));
+  body.append(title, badge, ...lines.map(createText));
   const footer = document.createElement("div");
   footer.className = "card-footer bg-transparent";
   footer.append(createDeleteButton(rental));
@@ -133,9 +147,10 @@ function updateListByType(): void {
 }
 
 function updateTotals(): void {
-  if (inpTotalRentals && inpTotalIncome) {
+  if (inpTotalRentals && inpTotalIncome && inpTotalLateFees) {
     inpTotalRentals.value = String(rentalList.getItems().length);
     inpTotalIncome.value = String(rentalList.totalIncome());
+    inpTotalLateFees.value = String(rentalList.totalLateFees());
   }
 }
 
@@ -164,6 +179,7 @@ if (btnAdd && inpCustomer && inpCode && selType && inpHours && inpPrice) {
         hours: Number(inpHours.value),
         pricePerHour: Number(inpPrice.value),
       });
+      rental.lateHours = Number(inpLateHours?.value ?? 0);
       rentalList.add(rental);
       hideError();
       clearInputs();
