@@ -74,4 +74,30 @@ describe("Rental", () => {
   test("show the rental as text", () => {
     expect(rental.toString()).toBe("B-123 (Urbana) - Juan Gómez - 3 h - $300");
   });
+
+  test("store late hours", () => {
+    rental.lateHours = 2;
+    expect(rental.lateHours).toBe(2);
+  });
+
+  test("late hours default to zero", () => {
+    expect(rental.lateHours).toBe(0);
+  });
+
+  test("reject negative late hours", () => {
+    expect(() => (rental.lateHours = -1)).toThrow();
+  });
+
+  test("reject late hours that are not an integer", () => {
+    expect(() => (rental.lateHours = 1.5)).toThrow();
+  });
+
+  test("reject late hours that are not a number", () => {
+    expect(() => (rental.lateHours = Number.NaN)).toThrow();
+  });
+
+  test("show the rental with late hours as text", () => {
+    rental.lateHours = 2;
+    expect(rental.toString()).toContain("Atraso: 2 h");
+  });
 });
